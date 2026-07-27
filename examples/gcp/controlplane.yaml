@@ -1,0 +1,7 @@
+apiVersion: core.open-control-plane.io/v2alpha1
+kind: ControlPlane
+metadata:
+  name: test-control-plane
+  namespace: default
+spec:
+  iam: {}

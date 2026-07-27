@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openmcp-operator
+  namespace: openmcp-system
+data:
+  config: |-
+    managedControlPlane:
+      mcpClusterPurpose: mcp
+    scheduler:
+      scope: Cluster
+      purposeMappings:
+        mcp:
+          template:
+            spec:
+              profile: capi
+              tenancy: Exclusive
+              kubernetes:
+                version: "1.36.2-gke.2064000"
+        platform:
+          template:
+            spec:
+              profile: kind
+              tenancy: Shared
+        onboarding:
+          template:
+            metadata:
+              annotations:
+                kind.clusters.openmcp.cloud/name: local-onboarding
+            spec:
+              profile: kind
+              tenancy: Shared
+        workload:
+          template:
+            spec:
+              profile: kind
+              tenancy: Shared

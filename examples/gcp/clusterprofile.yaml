@@ -1,0 +1,11 @@
+apiVersion: clusters.openmcp.cloud/v1alpha1
+kind: ClusterProfile
+metadata:
+  name: capi
+spec:
+  providerConfigRef:
+    name: capi
+  providerRef:
+    name: capi
+  supportedVersions:
+  - version: 1.36.2-gke.2064000

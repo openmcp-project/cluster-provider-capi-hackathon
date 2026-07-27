@@ -1,0 +1,149 @@
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: ClusterClass
+metadata:
+  name: gke-default-class
+spec:
+  controlPlane:
+    templateRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPManagedControlPlaneTemplate
+      name: gke-default-class-control-plane
+  infrastructure:
+    templateRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPManagedClusterTemplate
+      name: gke-default-class
+  workers:
+    machinePools:
+      - class: default-worker
+        bootstrap:
+          templateRef:
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            kind: KubeadmConfigTemplate
+            name: gke-default-class-worker-bootstraptemplate
+        infrastructure:
+          templateRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: GCPManagedMachinePoolTemplate
+            name: gke-default-class-worker-machinepooltemplate
+  variables:
+    - name: project
+      required: true
+      schema:
+        openAPIV3Schema:
+          type: string
+    - name: region
+      required: true
+      schema:
+        openAPIV3Schema:
+          type: string
+          default: europe-west1
+    - name: network
+      required: false
+      schema:
+        openAPIV3Schema:
+          type: string
+          default: default
+    - name: nodeCount
+      required: false
+      schema:
+        openAPIV3Schema:
+          type: integer
+          default: 3
+    - name: nodeMachineType
+      required: false
+      schema:
+        openAPIV3Schema:
+          type: string
+          default: n1-standard-2
+  patches:
+    - name: project-and-region-control-plane
+      definitions:
+        - selector:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: GCPManagedControlPlaneTemplate
+            matchResources:
+              controlPlane: true
+          jsonPatches:
+            - op: add
+              path: /spec/template/spec/project
+              valueFrom:
+                variable: project
+            - op: add
+              path: /spec/template/spec/location
+              valueFrom:
+                variable: region
+    - name: project-and-region-cluster
+      definitions:
+        - selector:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: GCPManagedClusterTemplate
+            matchResources:
+              infrastructureCluster: true
+          jsonPatches:
+            - op: add
+              path: /spec/template/spec/project
+              valueFrom:
+                variable: project
+            - op: add
+              path: /spec/template/spec/region
+              valueFrom:
+                variable: region
+            - op: add
+              path: /spec/template/spec/network/name
+              valueFrom:
+                variable: network
+    - name: machine-pool-type
+      definitions:
+        - selector:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: GCPManagedMachinePoolTemplate
+            matchResources:
+              machinePoolClass:
+                names:
+                  - default-worker
+          jsonPatches:
+            - op: add
+              path: /spec/template/spec/machineType
+              valueFrom:
+                variable: nodeMachineType
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: GCPManagedClusterTemplate
+metadata:
+  name: gke-default-class
+spec:
+  template:
+    spec:
+      project: ""
+      region: ""
+      network:
+        name: default
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: GCPManagedControlPlaneTemplate
+metadata:
+  name: gke-default-class-control-plane
+spec:
+  template:
+    spec:
+      project: ""
+      location: ""
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: GCPManagedMachinePoolTemplate
+metadata:
+  name: gke-default-class-worker-machinepooltemplate
+spec:
+  template:
+    spec:
+      scaling:
+        enableAutoscaling: false
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: gke-default-class-worker-bootstraptemplate
+spec:
+  template:
+    spec: {}

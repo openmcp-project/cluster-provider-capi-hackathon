@@ -1,0 +1,18 @@
+apiVersion: capi.cluster.open-control-plane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: capi
+spec:
+  providerRef:
+    name: capi
+  clusterClassName: gke-default-class
+  clusterClassNamespace: default
+  topologyVariables:
+    - name: project
+      value: "my-gcp-project-id"  # TODO: replace with your GCP project ID
+    - name: region
+      value: "europe-west1"
+    - name: network
+      value: "default"
+    - name: nodeCount
+      value: 3
