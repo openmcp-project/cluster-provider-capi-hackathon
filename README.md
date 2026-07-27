@@ -1,14 +1,14 @@
 # cluster-provider-capi
 
-A cluster provider for the [Open Control Plane](https://github.com/openmcp-project/openmcp-operator) that provisions Kubernetes clusters using [Cluster API](https://cluster-api.sigs.k8s.io/) (CAPI) topology / ClusterClass.
+A cluster provider for the [OpenControlPlane](https://open-control-plane.io) ecosystem that provisions Kubernetes clusters using [Cluster API](https://cluster-api.sigs.k8s.io/) (CAPI) topology / ClusterClass.
 
-The provider creates and manages a CAPI `Cluster` resource for each OpenMCP `Cluster` resource with `spec.profile: capi`. All ClusterClass templates and infrastructure providers must already be installed — this provider only manages the `Cluster` resource itself.
+The provider creates and manages a CAPI `Cluster` resource for each OpenControlPlane `Cluster` resource with `spec.profile: capi`. All ClusterClass templates and infrastructure providers must already be installed — this provider only manages the `Cluster` resource itself.
 
 > **Note**: This provider is infrastructure-agnostic — it works with any CAPI infrastructure provider that supports ClusterClass topology. The setup instructions and examples in this document showcase GCP (GKE via CAPG) as the reference implementation. Adapting to other infrastructure providers (AWS, Azure, vSphere, etc.) requires replacing the ClusterClass, templates, and credentials with their respective equivalents.
 
 ## Prerequisites
 
-- OpenMCP platform cluster running the `openmcp-operator`
+- OpenControlPlane platform cluster running the `openmcp-operator` e.g. via the [Quickstart guide](https://open-control-plane.io/operators/quickstart/)
 - `helm` CLI
 - `kubectl` CLI configured to point at the **platform cluster**
 - GCP service account JSON key file with GKE permissions
@@ -198,7 +198,7 @@ kubectl apply -f examples/gcp/controlplane.yaml
 
 The following resources are created automatically:
 
-1. OpenMCP `Cluster` (on the platform cluster, by the scheduler)
+1. OpenControlPlane `Cluster` (on the platform cluster, by the scheduler)
 2. CAPI `Cluster` with topology referencing `gke-default-class` (by this provider)
 3. `GCPManagedControlPlane`, `GCPManagedCluster`, `GCPManagedMachinePool` (by CAPI topology expansion)
 4. GKE cluster (by CAPG)
@@ -207,7 +207,7 @@ Once the GKE cluster is provisioned, the `ControlPlane` transitions to `Ready`.
 
 ## How it works
 
-The provider watches OpenMCP `Cluster` resources with `spec.profile: capi`. For each one it:
+The provider watches OpenControlPlane `Cluster` resources with `spec.profile: capi`. For each one it:
 
 1. Looks up the `ProviderConfig` for the configured `--provider-name`
 2. Fetches the `ClusterClass` to discover all defined machine pool classes
@@ -215,7 +215,7 @@ The provider watches OpenMCP `Cluster` resources with `spec.profile: capi`. For 
    - topology class pointing to the configured `ClusterClass`
    - topology variables from `ProviderConfig.spec.topologyVariables`
    - one `MachinePool` entry per machine pool class defined in the `ClusterClass`, with `replicas: 3` (suitable for GKE regional clusters)
-4. Tracks the CAPI `Cluster` status and reflects it on the OpenMCP `Cluster`
+4. Tracks the CAPI `Cluster` status and reflects it on the OpenControlPlane `Cluster`
 5. On deletion, deletes the CAPI `Cluster` and waits for the infrastructure to be cleaned up
 
 CAPI Cluster names are derived as `capi-<8-char-hash>` to stay within GKE's 40-character node pool name limit.

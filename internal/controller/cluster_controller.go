@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"hash/fnv"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"hash/fnv"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,7 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/openmcp-project/controller-utils/pkg/clusters"
 	ctrlutils "github.com/openmcp-project/controller-utils/pkg/controller"
@@ -389,7 +390,7 @@ func isCAPIClusterReady(c *clusterv1.Cluster) bool {
 		c.Status.ControlPlaneReady
 }
 
-// capiClusterName derives a short deterministic CAPI Cluster name from the OpenMCP Cluster.
+// capiClusterName derives a short deterministic CAPI Cluster name from the OpenControlPlane Cluster.
 // We hash namespace+name to stay well under GKE's 40-char node pool name limit.
 func capiClusterName(c *clustersv1alpha1.Cluster) string {
 	h := fnv.New32a()
@@ -400,7 +401,7 @@ func capiClusterName(c *clustersv1alpha1.Cluster) string {
 // capiClusterNamespace returns the namespace for the CAPI Cluster.
 // It uses the ClusterClassNamespace from the ProviderConfig so that the Cluster
 // lives in the same namespace as its ClusterClass (CAPI requirement).
-// Falls back to the OpenMCP Cluster's own namespace if not configured.
+// Falls back to the OpenControlPlane Cluster's own namespace if not configured.
 func capiClusterNamespace(c *clustersv1alpha1.Cluster, pc *capiv1alpha1.ProviderConfig) string {
 	if pc.Spec.ClusterClassNamespace != "" {
 		return pc.Spec.ClusterClassNamespace
@@ -456,7 +457,7 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// enqueueFromCAPICluster maps a CAPI Cluster event back to the owning OpenMCP Cluster.
+// enqueueFromCAPICluster maps a CAPI Cluster event back to the owning OpenControlPlane Cluster.
 func (r *ClusterReconciler) enqueueFromCAPICluster(ctx context.Context, obj client.Object) []reconcile.Request {
 	capiCluster, ok := obj.(*clusterv1.Cluster)
 	if !ok {
