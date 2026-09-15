@@ -1,5 +1,8 @@
 # cluster-provider-capi
 
+> [!WARNING]
+> This project is experimental and was created as a proof of concept during a hackathon. It is not suitable for use in production environments.
+
 A cluster provider for the [OpenControlPlane](https://open-control-plane.io) ecosystem that provisions Kubernetes clusters using [Cluster API](https://cluster-api.sigs.k8s.io/) (CAPI) topology / ClusterClass.
 
 The provider creates and manages a CAPI `Cluster` resource for each OpenControlPlane `Cluster` resource with `spec.profile: capi`. All ClusterClass templates and infrastructure providers must already be installed — this provider only manages the `Cluster` resource itself.
